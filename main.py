@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 import database_models
 from database import SessionLocal, engine
@@ -7,6 +8,17 @@ from models import Product
 database_models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def get_db():
     db = SessionLocal()
@@ -44,7 +56,7 @@ def init_db():
 
 init_db()    
 
-@app.get("/products/")
+@app.get("/products/", response_model=list[Product])
 def get_all_products(db: Session = Depends(get_db)):
     products = db.query(database_models.Product).all()
     return products
